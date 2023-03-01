@@ -26,11 +26,13 @@ public class HttpServiceRouter {
         String group = baseHttpService.group();
         serviceMap.put(group, baseHttpService);
         log.info("[Http Api] Register group: {}", group);
-        Method[] methods = baseHttpService.getClass().getMethods();
+        Method[] methods = baseHttpService.getClass().getDeclaredMethods();
         for (Method method : methods) {
-            String cacheKey = group + "-" + method.getName();
-            cacheMap.put(cacheKey, method);
-            break;
+            if (method.getParameters().length == 1) {
+                String cacheKey = group + "-" + method.getName();
+                cacheMap.put(cacheKey, method);
+                break;
+            }
         }
     }
 

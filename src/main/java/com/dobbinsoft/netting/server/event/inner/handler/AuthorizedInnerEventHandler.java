@@ -2,6 +2,7 @@ package com.dobbinsoft.netting.server.event.inner.handler;
 
 import com.dobbinsoft.netting.base.utils.JwtUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
+import com.dobbinsoft.netting.base.utils.StringUtils;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
 import com.dobbinsoft.netting.server.event.inner.AuthorizedInnerEvent;
@@ -33,7 +34,11 @@ public class AuthorizedInnerEventHandler extends AbstractInnerEventHandler<Autho
                 String businessUserId = payload.get("businessUserId");
                 terminal.setBusinessUserId(businessUserId);
                 String permissionKeys = payload.get("permissionKeys");
-                terminal.setPermissionKeys(Arrays.asList(permissionKeys.split(",")));
+                if (StringUtils.isNotEmpty(permissionKeys)) {
+                    terminal.setPermissionKeys(Arrays.asList(permissionKeys.split(",")));
+                } else {
+                    terminal.setPermissionKeys(Arrays.asList());
+                }
                 terminalRepository.save(terminal);
             } else {
                 log.warn("[Authorized Event] verifyRSA256 token failed, token: {}", terminal.getJwtToken());

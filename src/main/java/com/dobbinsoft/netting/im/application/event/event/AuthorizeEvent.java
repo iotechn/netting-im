@@ -1,5 +1,6 @@
-package com.dobbinsoft.netting.im.application.event;
+package com.dobbinsoft.netting.im.application.event.event;
 
+import com.dobbinsoft.netting.im.application.event.IMEventCodes;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,7 @@
 package com.dobbinsoft.netting.server.event;
 
+import com.dobbinsoft.netting.base.utils.JsonUtils;
+
 /**
  * @author w.wei
  * @version 1.0
@@ -17,6 +19,11 @@ public interface IOEvent {
     default String permissionKey() {
         // 默认不需要访问权限
         return null;
+    }
+
+    default String toMessage() {
+        String json = JsonUtils.toJson(this);
+        return this.eventCode() + "|" + json;
     }
 
     /**

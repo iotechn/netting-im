@@ -6,10 +6,8 @@ import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
-import com.dobbinsoft.netting.server.event.EventDispatcher;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -95,6 +93,7 @@ public class WebsocketServer {
             Channel channel = ctx.channel();
             terminal.setId(channel.id().asLongText());
             terminal.setChannel(channel);
+            terminal.setProtocolWrapper(message -> new TextWebSocketFrame(message));
             terminalRepository.save(terminal);
             log.info("[Terminal Ws] Connected id=" + terminal.getId());
             // TODO 增加鉴权时间限制，第一个包必须是鉴权

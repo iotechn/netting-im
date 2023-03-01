@@ -5,10 +5,8 @@ import com.dobbinsoft.netting.base.utils.JsonUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
 import com.dobbinsoft.netting.im.application.event.AbstractEventHandler;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
-import com.dobbinsoft.netting.server.domain.values.BusinessUserId;
 import com.dobbinsoft.netting.server.event.inner.handler.AbstractInnerEventHandler;
 import com.dobbinsoft.netting.server.event.inner.handler.AuthorizedInnerEventHandler;
-import io.netty.channel.Channel;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,15 +23,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public abstract class EventDispatcher {
 
-    public static Map<Integer, AbstractEventHandler> eventHandlerMap = new ConcurrentHashMap<>();
+    protected static Map<Integer, AbstractEventHandler> eventHandlerMap = new ConcurrentHashMap<>();
 
-    public void register(AbstractEventHandler handler) {
+    public static void register(AbstractEventHandler handler) {
         eventHandlerMap.put(handler.eventCode(), handler);
     }
 
     public abstract void dispatchToServer(IOEvent ioEvent, Terminal terminal);
 
-    public abstract void dispatchToTerminal(IOEvent ioEvent, BusinessUserId businessUserId);
+    public abstract void dispatchToTerminal(IOEvent ioEvent, String businessUserId);
+
+    public abstract boolean dispatchToTerminal(String ioEvent, String businessUserId);
 
     public Class getEventClass(Integer eventCode) {
         AbstractEventHandler abstractEventHandler = eventHandlerMap.get(eventCode);
@@ -43,7 +43,7 @@ public abstract class EventDispatcher {
         return null;
     }
 
-    protected void processEvent(Future<List<String>> future, Channel channel) {
+    protected void processEvent(Future<List<String>> future, Terminal terminal) {
         if (future != null) {
             future.addListener(f -> {
                 List<String> events = (List<String>) f.getNow();
@@ -56,13 +56,13 @@ public abstract class EventDispatcher {
                             AbstractInnerEventHandler handler = AuthorizedInnerEventHandler.getHandler(code);
                             if (handler != null) {
                                 IOEvent ioEvent = (IOEvent) JsonUtils.parse(eventCodeAndBody[1], handler.eventClass());
-                                handler.handle(ioEvent, channel);
+                                handler.handle(ioEvent, terminal == null ? null : terminal.getChannel());
                             } else {
                                 log.warn("[Inner Event Process] event code not support: {}", code);
                             }
                         } else if (code > 0){
                             // 直接转发Event
-                            channel.writeAndFlush(event);
+                            terminal.getChannel().writeAndFlush(terminal.getProtocolWrapper().wrap(event));
                         }
                     }
                 }

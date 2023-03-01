@@ -4,9 +4,12 @@ import com.dobbinsoft.netting.base.utils.JsonUtils;
 import com.dobbinsoft.netting.base.utils.JwtUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.im.application.event.AbstractEventHandler;
-import com.dobbinsoft.netting.im.application.event.AuthorizeEvent;
+import com.dobbinsoft.netting.im.application.event.EventCause;
+import com.dobbinsoft.netting.im.application.event.event.AuthorizeEvent;
 import com.dobbinsoft.netting.im.application.event.IMEventCodes;
+import com.dobbinsoft.netting.im.application.event.event.AuthorizeResultEvent;
 import com.dobbinsoft.netting.server.event.inner.AuthorizedInnerEvent;
+import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
@@ -51,12 +54,17 @@ public class AuthorizeEventHandler extends AbstractEventHandler<AuthorizeEvent> 
                         String newJwtToken = JwtUtils.createRSA256(new HashMap<String, String>(), payload, 60 * 60 * 24 * 30, privateKey);
                         AuthorizedInnerEvent authorizedInnerEvent = new AuthorizedInnerEvent();
                         authorizedInnerEvent.setJwtToken(newJwtToken);
-                        return Arrays.asList(JsonUtils.toJson(authorizedInnerEvent));
+
+                        AuthorizeResultEvent authorizeResultEvent = new AuthorizeResultEvent(true, null);
+                        return Arrays.asList(authorizedInnerEvent.toMessage(), authorizeResultEvent.toMessage());
                     } catch (InvalidKeySpecException e) {
                         log.error("[IM Event] Authorize rsa256 private key invalid!");
+                        AuthorizeResultEvent authorizeResultEvent = new AuthorizeResultEvent(false, Arrays.asList(EventCause.AUTHORIZED_INVALID_PRIVATE_KEY));
+                        return Arrays.asList(authorizeResultEvent.toMessage());
                     }
                 }
-                return null;
+                AuthorizeResultEvent authorizeResultEvent = new AuthorizeResultEvent(false, Arrays.asList(EventCause.AUTHORIZED_SECRET_INCORRECT));
+                return Arrays.asList(authorizeResultEvent.toMessage());
             }
         });
         return submit;

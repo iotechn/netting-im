@@ -1,9 +1,11 @@
 package com.dobbinsoft.netting;
 
+import com.dobbinsoft.netting.im.application.event.handler.AuthorizeEventHandler;
 import com.dobbinsoft.netting.im.application.service.http.GroupHttpService;
 import com.dobbinsoft.netting.im.infrastructure.ioc.module.GuiceModule;
 import com.dobbinsoft.netting.im.web.HttpServiceRouter;
 import com.dobbinsoft.netting.im.web.HttpWebServer;
+import com.dobbinsoft.netting.server.event.EventDispatcher;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import com.dobbinsoft.netting.server.event.inner.handler.AbstractInnerEventHandler;
 import com.dobbinsoft.netting.server.event.inner.handler.AuthorizedInnerEventHandler;
@@ -40,10 +42,11 @@ public class NettingBootstrap {
     }
 
     private static void init(Injector ioc) {
-        // 1. Http
+        // 1. IM Http Api
         HttpServiceRouter.register(ioc.getInstance(GroupHttpService.class));
-
-        // 2. Inner Handler
+        // 2. IM Event Handler
+        EventDispatcher.register(ioc.getInstance(AuthorizeEventHandler.class));
+        // 3. Server Inner Handler
         AbstractInnerEventHandler.register(IOEvent.INNER_EVENT_AUTHORIZED, ioc.getInstance(AuthorizedInnerEventHandler.class));
     }
 
