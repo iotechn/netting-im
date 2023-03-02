@@ -31,4 +31,4 @@ ENV JAVA_OPTS="\
 -XX:+ExitOnOutOfMemoryError"
 
 
-CMD ["sh", "-c", "java $JAVA_OPTS --active=${RUN_ENV} -jar main.jar" ]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar main.jar --active=${RUN_ENV}" ]
