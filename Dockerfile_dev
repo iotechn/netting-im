@@ -1,0 +1,34 @@
+FROM registry.cn-beijing.aliyuncs.com/dobbinsoft/dobbinjdk:8
+
+COPY ./target/netting-im-1.0-SNAPSHOT-jar-with-dependencies.jar main.jar
+
+EXPOSE 8000
+EXPOSE 9000
+
+ENV RUN_ENV=dev
+
+ENV JAVA_OPTS="\
+-server \
+-Xloggc:/home/dobbin/gc.log \
+-XX:+IgnoreUnrecognizedVMOptions \
+-XX:+HeapDumpOnOutOfMemoryError \
+-XX:+PrintGCDetails \
+-XX:+PrintGCDateStamps \
+-XX:GCLogFileSize=10M \
+-XX:-UseBiasedLocking \
+-XX:+UseTLAB \
+-XX:+ResizeTLAB \
+-XX:+PerfDisableSharedMem \
+-XX:+UseCondCardMark \
+-XX:CMSWaitDuration=10000 \
+-XX:+UseParNewGC \
+-XX:+UseConcMarkSweepGC \
+-XX:+CMSParallelRemarkEnabled \
+-XX:+CMSParallelInitialMarkEnabled \
+-XX:+CMSEdenChunksRecordAlways \
+-XX:CMSInitiatingOccupancyFraction=75 \
+-XX:+UseCMSInitiatingOccupancyOnly \
+-XX:+ExitOnOutOfMemoryError"
+
+
+CMD ["sh", "-c", "java $JAVA_OPTS --active=${RUN_ENV} -jar main.jar" ]

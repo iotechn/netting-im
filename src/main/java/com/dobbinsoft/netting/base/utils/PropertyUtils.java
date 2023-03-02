@@ -1,15 +1,22 @@
 package com.dobbinsoft.netting.base.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+@Slf4j
 public class PropertyUtils {
 
     public static final Properties properties = new Properties();
 
-    static {
-        try (InputStream is = PropertyUtils.class.getResourceAsStream("/netting-im.properties")){
+    public static void init(String active){
+        if (StringUtils.isNotEmpty(active)) {
+            log.info("The active profile: {}", active);
+        }
+        String name = StringUtils.isNotEmpty(active) ? ("/netting-im-" + active +".properties") : "/netting-im.properties";
+        try (InputStream is = PropertyUtils.class.getResourceAsStream(name)){
             if (is != null) {
                 properties.load(is);
             }

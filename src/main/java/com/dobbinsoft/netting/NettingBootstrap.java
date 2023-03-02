@@ -1,5 +1,6 @@
 package com.dobbinsoft.netting;
 
+import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.im.application.event.handler.AuthorizeEventHandler;
 import com.dobbinsoft.netting.im.application.service.http.GroupHttpService;
 import com.dobbinsoft.netting.im.infrastructure.ioc.module.GuiceModule;
@@ -29,19 +30,31 @@ public class NettingBootstrap {
     private static final int SERVER_COUNT = 2;
 
     public static void main(String[] args) throws Exception {
+        // 1. Init Profile
+        initProfile(args);
         Injector ioc = Guice.createInjector(new GuiceModule());
         CountDownLatch countDownLatch = new CountDownLatch(SERVER_COUNT);
-        // 0. Guice IoC 无法进行预加载，部分对象必须进行预加载，所以这里手动列一下，哪些对象是要预加载的
-        init(ioc);
-        // 1. 启动连接层
+        // 2. Guice IoC 无法进行预加载，部分对象必须进行预加载，所以这里手动列一下，哪些对象是要预加载的
+        initIoC(ioc);
+        // 3. 启动连接层
         bootServer(ioc, countDownLatch);
-        // 2. 启动业务
+        // 4. 启动业务
         bootIm(ioc, countDownLatch);
         countDownLatch.await();
         log.info("[System] shutdown");
     }
 
-    private static void init(Injector ioc) {
+    private static void initProfile(String[] args) {
+        String active = null;
+        for (String arg : args) {
+            if (arg.startsWith("--active=")) {
+                active = arg.replace("--active=", "");
+            }
+        }
+        PropertyUtils.init(active);
+    }
+
+    private static void initIoC(Injector ioc) {
         // 1. IM Http Api
         HttpServiceRouter.register(ioc.getInstance(GroupHttpService.class));
         // 2. IM Event Handler
