@@ -10,12 +10,14 @@ import com.dobbinsoft.netting.server.event.IOEvent;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 public class WebsocketServer {
 
     @Inject
-    private NettyWebSocketServerHandler nettyWebSocketServerHandler;
+    private NettyWebSocketTextServerHandler nettyWebSocketTextServerHandler;
+
+    @Inject
+    private NettyWebSocketBinaryServerHandler nettyWebSocketBinaryServerHandler;
 
     public void doServer() {
         //开启第一个线程用于接收客户端连接
@@ -43,7 +48,8 @@ public class WebsocketServer {
                             pipeline.addLast("codec-http", new HttpServerCodec());
                             pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
                             pipeline.addLast("ws-protocol", new WebSocketServerProtocolHandler("/ws/terminal"));
-                            pipeline.addLast("ws-event", nettyWebSocketServerHandler);
+                            pipeline.addLast("ws-event", nettyWebSocketTextServerHandler);
+                            pipeline.addLast("ws-binary", nettyWebSocketBinaryServerHandler);
                         }
                     })
                     .bind(PropertyUtils.getPropertyInt("server.ws.port")).sync();
@@ -60,12 +66,15 @@ public class WebsocketServer {
 
     @Singleton
     @ChannelHandler.Sharable
-    public static class NettyWebSocketServerHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+    public static class NettyWebSocketTextServerHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
         @Inject
         // The impl of eventDispatcher can be customized. You can use rpc replace jvm call.
         // 此处 eventDispatcher 可以被定制，你可以使用rpc来代替jvm调用
         private JvmEventDispatcher eventDispatcher;
+
+        @Inject
+        private WebsocketProtocolWrapper websocketProtocolWrapper;
 
         @Inject
         private TerminalRepository terminalRepository;
@@ -89,11 +98,10 @@ public class WebsocketServer {
         @Override
         public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
             // ctx.channel().id() 表示唯一的值
-            Terminal terminal = new Terminal();
             Channel channel = ctx.channel();
-            terminal.setId(channel.id().asLongText());
+            Terminal terminal = new Terminal(channel.id().asLongText());
             terminal.setChannel(channel);
-            terminal.setProtocolWrapper(message -> new TextWebSocketFrame(message));
+            terminal.setProtocolWrapper(websocketProtocolWrapper);
             terminalRepository.save(terminal);
             log.info("[Terminal Ws] Connected id=" + terminal.getId());
             // TODO 增加鉴权时间限制，第一个包必须是鉴权
@@ -112,6 +120,21 @@ public class WebsocketServer {
             log.error("[Terminal Ws] Exception", cause);
             terminalRepository.remove(ctx.channel().id().asLongText());
             ctx.channel().close();
+        }
+    }
+
+    @Singleton
+    @ChannelHandler.Sharable
+    public static class NettyWebSocketBinaryServerHandler extends SimpleChannelInboundHandler<BinaryWebSocketFrame> {
+
+        @Inject
+        private TerminalRepository terminalRepository;
+
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, BinaryWebSocketFrame binaryWebSocketFrame) throws Exception {
+            Terminal terminal = terminalRepository.findById(ctx.channel().id().asLongText());
+            ByteBuf content = binaryWebSocketFrame.content();
+            terminal.sendStream(content);
         }
     }
 

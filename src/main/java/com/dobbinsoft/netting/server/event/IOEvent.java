@@ -12,6 +12,8 @@ public interface IOEvent {
 
     int INNER_EVENT_AUTHORIZED = -1;
 
+    int INNER_EVENT_GROUP_STREAM_JOIN = -2;
+
     /**
      * 该事件所需的访问权限KEY
      * @return
