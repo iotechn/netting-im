@@ -1,6 +1,8 @@
 package com.dobbinsoft.netting.adapter.event;
 
 import com.dobbinsoft.netting.im.application.event.AbstractEventHandler;
+import com.dobbinsoft.netting.server.cluster.ClusterNode;
+import com.dobbinsoft.netting.server.cluster.ClusterNodeMapper;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
 import com.dobbinsoft.netting.server.event.EventDispatcher;
@@ -20,6 +22,9 @@ public class JvmEventDispatcher extends EventDispatcher {
 
     @Inject
     private TerminalRepository terminalRepository;
+
+    @Inject
+    private ClusterNodeMapper clusterNodeMapper;
 
     @Override
     public void dispatchToServer(IOEvent ioEvent, Terminal terminal) {
@@ -42,8 +47,11 @@ public class JvmEventDispatcher extends EventDispatcher {
             terminal.getChannel().writeAndFlush(terminal.getProtocolWrapper().wrap(ioEvent));
             return true;
         } else {
-            // 1. TODO 路由到其他节点
-
+            // 1. 路由到其他节点
+            ClusterNode clusterNode = clusterNodeMapper.get(terminal.getBusinessUserId());
+            if (clusterNode != null) {
+                return clusterNode.dispatchToTerminal(ioEvent, businessUserId);
+            }
             // 2. Terminal确实不在线
             return false;
         }

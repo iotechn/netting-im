@@ -15,6 +15,11 @@ public interface IOEvent {
     int INNER_EVENT_GROUP_STREAM_JOIN = -2;
 
     /**
+     * 集群内转发
+     */
+    int INNER_EVENT_CLUSTER_DISPATCHER = -3;
+
+    /**
      * 该事件所需的访问权限KEY
      * @return
      */

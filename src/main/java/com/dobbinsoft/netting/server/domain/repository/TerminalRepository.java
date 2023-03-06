@@ -1,6 +1,7 @@
 package com.dobbinsoft.netting.server.domain.repository;
 
 import com.dobbinsoft.netting.base.utils.StringUtils;
+import com.dobbinsoft.netting.server.cluster.ClusterNode;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.google.inject.Singleton;
 
@@ -32,6 +33,10 @@ public class TerminalRepository {
         String id = terminal.getId();
         terminalMap.put(id, terminal);
         if (StringUtils.isNotEmpty(terminal.getBusinessUserId())) {
+            Terminal terminalExist = businessUserIdMap.get(terminal.getBusinessUserId());
+            if (terminalExist != null && terminal.getChannel() != terminalExist.getChannel()) {
+                terminalExist.getChannel().disconnect();
+            }
             businessUserIdMap.put(terminal.getBusinessUserId(), terminal);
         }
     }

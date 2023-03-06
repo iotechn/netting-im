@@ -46,7 +46,7 @@ public class WebsocketServer {
                         protected void initChannel(SocketChannel sc) throws Exception {
                             ChannelPipeline pipeline = sc.pipeline();
                             pipeline.addLast("codec-http", new HttpServerCodec());
-                            pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
+                            pipeline.addLast("aggregator", new HttpObjectAggregator(PropertyUtils.getPropertyInt("server.ws.max-content-length")));
                             pipeline.addLast("ws-protocol", new WebSocketServerProtocolHandler("/ws/terminal"));
                             pipeline.addLast("ws-event", nettyWebSocketTextServerHandler);
                             pipeline.addLast("ws-binary", nettyWebSocketBinaryServerHandler);

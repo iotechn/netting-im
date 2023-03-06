@@ -6,10 +6,14 @@ import com.dobbinsoft.netting.im.application.service.http.GroupHttpService;
 import com.dobbinsoft.netting.im.infrastructure.ioc.module.GuiceModule;
 import com.dobbinsoft.netting.im.web.HttpServiceRouter;
 import com.dobbinsoft.netting.im.web.HttpWebServer;
+import com.dobbinsoft.netting.server.cluster.ClusterHeartBeatPusher;
+import com.dobbinsoft.netting.server.cluster.ClusterHeartBeatReceiver;
 import com.dobbinsoft.netting.server.event.EventDispatcher;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import com.dobbinsoft.netting.server.event.inner.handler.AbstractInnerEventHandler;
 import com.dobbinsoft.netting.server.event.inner.handler.AuthorizedInnerEventHandler;
+import com.dobbinsoft.netting.server.event.inner.handler.ClusterDispatcherInnerEventHandler;
+import com.dobbinsoft.netting.server.event.inner.handler.StreamGroupJoinInnerEventHandler;
 import com.dobbinsoft.netting.server.protocol.WebsocketServer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -40,18 +44,23 @@ public class NettingBootstrap {
         bootServer(ioc, countDownLatch);
         // 4. 启动业务
         bootIm(ioc, countDownLatch);
+        // 5. 启动集群间心跳
+        bootCluster(ioc);
         countDownLatch.await();
         log.info("[System] shutdown");
     }
 
     private static void initProfile(String[] args) {
         String active = null;
+        String network = null;
         for (String arg : args) {
             if (arg.startsWith("--active=")) {
                 active = arg.replace("--active=", "");
+            } else if (arg.startsWith("--network=")) {
+                network = arg.replace("--network", "");
             }
         }
-        PropertyUtils.init(active);
+        PropertyUtils.init(active, network);
     }
 
     private static void initIoC(Injector ioc) {
@@ -61,6 +70,8 @@ public class NettingBootstrap {
         EventDispatcher.register(ioc.getInstance(AuthorizeEventHandler.class));
         // 3. Server Inner Handler
         AbstractInnerEventHandler.register(IOEvent.INNER_EVENT_AUTHORIZED, ioc.getInstance(AuthorizedInnerEventHandler.class));
+        AbstractInnerEventHandler.register(IOEvent.INNER_EVENT_GROUP_STREAM_JOIN, ioc.getInstance(StreamGroupJoinInnerEventHandler.class));
+        AbstractInnerEventHandler.register(IOEvent.INNER_EVENT_CLUSTER_DISPATCHER, ioc.getInstance(ClusterDispatcherInnerEventHandler.class));
     }
 
     private static void bootServer(Injector ioc, CountDownLatch countDownLatch) {
@@ -81,7 +92,21 @@ public class NettingBootstrap {
             log.info("[Business] IM managed api closed!");
             countDownLatch.countDown();
         }, "Thread-IM").start();
+    }
 
+    private static void bootCluster(Injector ioc) {
+        Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
+        if (clusterServer) {
+            new Thread(() -> {
+                log.info("[Cluster] Heart beat pusher startup!");
+                ClusterHeartBeatPusher clusterHeartBeatPusher = ioc.getInstance(ClusterHeartBeatPusher.class);
+                clusterHeartBeatPusher.init();
+                log.info("[Cluster] Heart beat receiver startup!");
+                ClusterHeartBeatReceiver clusterHeartBeatReceiver = ioc.getInstance(ClusterHeartBeatReceiver.class);
+                clusterHeartBeatReceiver.doServer();
+                log.info("[Cluster] Heart beat receiver closed!");
+            }, "Thread-HEART").start();
+        }
     }
 
 }
