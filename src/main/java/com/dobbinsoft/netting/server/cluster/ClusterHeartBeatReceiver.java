@@ -31,6 +31,7 @@ public class ClusterHeartBeatReceiver {
 
             b.bind(PropertyUtils.getPropertyInt("server.cluster.port"))
                     .sync().channel().closeFuture().await();
+            log.info("[ClusterServer] shutdown!");
         }catch (Exception e) {
             log.error("[ClusterServer] 异常", e);
             System.exit(0);
