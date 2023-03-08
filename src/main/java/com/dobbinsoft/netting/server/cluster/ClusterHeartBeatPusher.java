@@ -63,15 +63,15 @@ public class ClusterHeartBeatPusher {
             b.group(group).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST,true)
                     .handler(clusterClientHandler);
-            this.channel = b.bind(0).sync().channel();
+            this.channel = b.bind(PropertyUtils.getPropertyInt("server.cluster.port")).sync().channel();
 
             ChannelFuture channelFuture = this.channel.closeFuture();
             Integer period = PropertyUtils.getPropertyInt("server.cluster.heart-period");
+            channelFuture.addListener((ChannelFutureListener) channelFuture1 -> log.info("[ClusterHeartBeat] shutdown!"));
             while (!Thread.interrupted()) {
                 sendHeartBeat();
                 Thread.sleep(period);
             }
-            channelFuture.addListener((ChannelFutureListener) channelFuture1 -> log.info("[ClusterHeartBeat] shutdown!"));
         } catch (Exception e) {
             log.error("[ClusterClient] 异常", e);
         } finally {
