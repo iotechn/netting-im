@@ -7,7 +7,6 @@ import com.dobbinsoft.netting.im.infrastructure.ioc.module.GuiceModule;
 import com.dobbinsoft.netting.im.web.HttpServiceRouter;
 import com.dobbinsoft.netting.im.web.HttpWebServer;
 import com.dobbinsoft.netting.server.cluster.ClusterHeartBeatPusher;
-import com.dobbinsoft.netting.server.cluster.ClusterHeartBeatReceiver;
 import com.dobbinsoft.netting.server.event.EventDispatcher;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import com.dobbinsoft.netting.server.event.inner.handler.AbstractInnerEventHandler;
@@ -101,10 +100,6 @@ public class NettingBootstrap {
                 log.info("[Cluster] Heart beat pusher startup!");
                 ClusterHeartBeatPusher clusterHeartBeatPusher = ioc.getInstance(ClusterHeartBeatPusher.class);
                 clusterHeartBeatPusher.init();
-                log.info("[Cluster] Heart beat receiver startup!");
-                ClusterHeartBeatReceiver clusterHeartBeatReceiver = ioc.getInstance(ClusterHeartBeatReceiver.class);
-                clusterHeartBeatReceiver.doServer();
-                log.info("[Cluster] Heart beat receiver closed!");
             }, "Thread-HEART").start();
         }
     }

@@ -19,6 +19,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
 @Slf4j
@@ -70,6 +71,7 @@ public class ClusterHeartBeatPusher {
                 sendHeartBeat();
                 Thread.sleep(period);
             }
+            channelFuture.addListener((ChannelFutureListener) channelFuture1 -> log.info("[ClusterHeartBeat] shutdown!"));
         } catch (Exception e) {
             log.error("[ClusterClient] 异常", e);
         } finally {
@@ -81,9 +83,15 @@ public class ClusterHeartBeatPusher {
     @ChannelHandler.Sharable
     public static class ClusterClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
+        @Inject
+        private ClusterNodeMapper clusterNodeMapper;
+
         @Override
         protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
-
+            String data = datagramPacket.content().toString(StandardCharsets.UTF_8);
+            ClusterNode clusterNode = JsonUtils.parse(data, ClusterNode.class);
+            clusterNodeMapper.heartBeatCluster(clusterNode);
+            log.info("[Received UDP Data]");
         }
     }
 
