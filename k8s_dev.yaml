@@ -53,6 +53,10 @@ spec:
           volumeMounts:
             - name: netting-im-log
               mountPath: "/home/dobbin/logs"
+          ports:
+            - name: clusters
+              containerPort: 9930
+              protocol: UDP
       volumes:
         - name: netting-im-log
           persistentVolumeClaim:
