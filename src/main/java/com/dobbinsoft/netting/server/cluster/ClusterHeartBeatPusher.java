@@ -97,12 +97,14 @@ public class ClusterHeartBeatPusher {
 
     public void sendHeartBeat() {
         // 向网段类所有机器广播发UDP
-        this.channel.writeAndFlush(
-                new DatagramPacket(
-                        Unpooled.copiedBuffer(clusterNodeJson, CharsetUtil.UTF_8),
-                        new InetSocketAddress(
-                                PropertyUtils.getProperty("server.cluster.net-segment"), PropertyUtils.getPropertyInt("server.cluster.port")
-                        )));
+        String clusters = PropertyUtils.getProperty("server.cluster.clusters");
+        String[] clusterArray = clusters.split(",");
+        for (String cluster : clusterArray) {
+            this.channel.writeAndFlush(
+                    new DatagramPacket(
+                            Unpooled.copiedBuffer(clusterNodeJson, CharsetUtil.UTF_8),
+                            new InetSocketAddress(cluster, PropertyUtils.getPropertyInt("server.cluster.port"))));
+        }
     }
 
 }

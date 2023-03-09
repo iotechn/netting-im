@@ -11,35 +11,26 @@ spec:
       storage: 512Mi
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   annotations:
     deployment.kubernetes.io/revision: "1"
     description: netting-im
-  creationTimestamp: "2023-03-01T17:56:17Z"
-  generation: 1
   labels:
     k8s-app: netting-im
     qcloud-app: netting-im
   name: netting-im
   namespace: netting
-  selfLink: /apis/apps/v1/namespaces/netting/deployments/netting-im
 spec:
-  progressDeadlineSeconds: 600
+  serviceName: netting-im
   replicas: 2
   revisionHistoryLimit: 10
   selector:
     matchLabels:
       k8s-app: netting-im
       qcloud-app: netting-im
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
-    type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         k8s-app: netting-im
         qcloud-app: netting-im
