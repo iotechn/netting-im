@@ -61,7 +61,7 @@
     </appender>
 
     <!-- 日志输出级别 -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="consoleLog"/>
         <appender-ref ref="info"/>
         <appender-ref ref="error"/>

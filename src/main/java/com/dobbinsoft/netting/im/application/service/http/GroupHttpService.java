@@ -17,7 +17,8 @@ public class GroupHttpService extends BaseHttpService {
     }
 
     public String hello(String body) {
-        jvmEventDispatcher.dispatchToTerminal("1003|{}", "hello");
+        jvmEventDispatcher.dispatchToTerminal("1003|{}", "bu2");
+        jvmEventDispatcher.dispatchToTerminal("1003|{}", "bu1");
         return "world";
     }
 

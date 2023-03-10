@@ -1,6 +1,7 @@
 package com.dobbinsoft.netting.im.infrastructure.mapper;
 
 import com.dobbinsoft.netting.im.infrastructure.po.UserPO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +14,10 @@ import java.util.List;
  */
 public interface UserMapper {
 
-    public List<UserPO> findByIds(Collection<Long> userIds);
+    public UserPO findById(Long userId);
+
+    public UserPO findByBusinessId(String businessUserId);
+
+    public List<UserPO> findByIds(@Param("userIds") Collection<Long> userIds);
 
 }

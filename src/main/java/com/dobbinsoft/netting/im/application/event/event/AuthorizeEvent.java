@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class AuthorizeEvent implements IOEvent {
 
-    private String userId;
+    private String businessUserId;
 
     private String userSecret;
 

@@ -41,7 +41,7 @@ public class GroupRepository {
         Map<Long, GroupUserPO> groupUserMap = groupUsers.stream().collect(Collectors.toMap(GroupUserPO::getUserId, Function.identity()));
         List<UserPO> userPos = userMapper.findByIds(groupUserMap.keySet());
         if (SessionUtils.hasLogin()) {
-            return Group.from(groupPO, groupUserMap.get(SessionUtils.getUser().getId()), userPos);
+            return Group.from(groupPO, groupUserMap.get(SessionUtils.getUser().getBusinessUserId()), userPos);
         } else {
             return Group.from(groupPO, null, userPos);
         }

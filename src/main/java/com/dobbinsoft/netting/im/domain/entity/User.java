@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author w.wei
@@ -17,14 +18,22 @@ import java.util.List;
 @Setter
 public class User {
 
-    private Long id;
+    private String businessUserId;
+
+    private String userSecret;
 
     public static User from(UserPO po) {
-        return new User();
+        if (po == null) {
+            return null;
+        }
+        User user = new User();
+        user.setBusinessUserId(po.getBusinessUserId());
+        user.setUserSecret(po.getUserSecret());
+        return user;
     }
 
     public static List<User> from(List<UserPO> pos) {
-        return new ArrayList<>();
+        return pos.stream().map(User::from).collect(Collectors.toList());
     }
 
 }

@@ -96,7 +96,7 @@ public class ClusterHeartBeatPusher {
             String data = datagramPacket.content().toString(StandardCharsets.UTF_8);
             ClusterNode clusterNode = JsonUtils.parse(data, ClusterNode.class);
             clusterNodeMapper.heartBeatCluster(clusterNode);
-            log.info("[Received UDP Data] clusterNode=" + JsonUtils.toJson(clusterNode));
+//            log.info("[Received UDP Data] clusterNode=" + JsonUtils.toJson(clusterNode));
         }
     }
 
