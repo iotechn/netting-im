@@ -20,7 +20,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 @Slf4j
 @Singleton
@@ -32,6 +34,8 @@ public class ClusterHeartBeatPusher {
     private Channel channel;
 
     private String clusterNodeJson;
+
+    private ClusterNode clusterNode;
 
     public void init() {
         EventLoopGroup group = new NioEventLoopGroup();
@@ -59,6 +63,7 @@ public class ClusterHeartBeatPusher {
             clusterNode.setHostName(addr.getHostName());
             clusterNode.setWsServerPort(PropertyUtils.getPropertyInt("server.ws.port"));
             this.clusterNodeJson = JsonUtils.toJson(clusterNode);
+            this.clusterNode = clusterNode;
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST,true)
@@ -99,7 +104,22 @@ public class ClusterHeartBeatPusher {
         // 向网段类所有机器广播发UDP
         String clusters = PropertyUtils.getProperty("server.cluster.clusters");
         String[] clusterArray = clusters.split(",");
+        List<String> clusterList = new ArrayList<>();
+
         for (String cluster : clusterArray) {
+            if (cluster.contains("*")) {
+                for (int i = 1; i < 255; i++) {
+                    clusterList.add(cluster.replace("*", "" + i));
+                }
+            } else {
+                clusterList.add(cluster);
+            }
+        }
+
+        for (String cluster : clusterList) {
+            if (cluster.equals(this.clusterNode.getHostAddress())) {
+                continue;
+            }
             this.channel.writeAndFlush(
                     new DatagramPacket(
                             Unpooled.copiedBuffer(clusterNodeJson, CharsetUtil.UTF_8),
