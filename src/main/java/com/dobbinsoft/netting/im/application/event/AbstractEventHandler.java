@@ -3,12 +3,14 @@ package com.dobbinsoft.netting.im.application.event;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.Future;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
+@Slf4j
 public abstract class AbstractEventHandler<T extends IOEvent> {
 
     public static final DefaultEventLoopGroup defaultEventLoopGroup = new DefaultEventLoopGroup(10);

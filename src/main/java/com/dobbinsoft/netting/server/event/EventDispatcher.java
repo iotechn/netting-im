@@ -46,25 +46,29 @@ public abstract class EventDispatcher {
     protected void processEvent(Future<List<String>> future, Terminal terminal) {
         if (future != null) {
             future.addListener(f -> {
-                List<String> events = (List<String>) f.getNow();
-                if (CollectionUtils.isNotEmpty(events)) {
-                    for (String event : events) {
-                        String[] eventCodeAndBody = StringUtils.getEventCodeAndBody(event);
-                        int code = Integer.parseInt(eventCodeAndBody[0]);
-                        if (code < 0) {
-                            // 内置事件 通过InnerEvent 的 eventCode 找到对应的处理器
-                            AbstractInnerEventHandler handler = AuthorizedInnerEventHandler.getHandler(code);
-                            if (handler != null) {
-                                IOEvent ioEvent = (IOEvent) JsonUtils.parse(eventCodeAndBody[1], handler.eventClass());
-                                handler.handle(ioEvent, terminal == null ? null : terminal.getChannel());
-                            } else {
-                                log.warn("[Inner Event Process] event code not support: {}", code);
+                try {
+                    List<String> events = (List<String>) f.getNow();
+                    if (CollectionUtils.isNotEmpty(events)) {
+                        for (String event : events) {
+                            String[] eventCodeAndBody = StringUtils.getEventCodeAndBody(event);
+                            int code = Integer.parseInt(eventCodeAndBody[0]);
+                            if (code < 0) {
+                                // 内置事件 通过InnerEvent 的 eventCode 找到对应的处理器
+                                AbstractInnerEventHandler handler = AuthorizedInnerEventHandler.getHandler(code);
+                                if (handler != null) {
+                                    IOEvent ioEvent = (IOEvent) JsonUtils.parse(eventCodeAndBody[1], handler.eventClass());
+                                    handler.handle(ioEvent, terminal == null ? null : terminal.getChannel());
+                                } else {
+                                    log.warn("[Inner Event Process] event code not support: {}", code);
+                                }
+                            } else if (code > 0){
+                                // 直接转发Event
+                                terminal.getChannel().writeAndFlush(terminal.getProtocolWrapper().wrap(event));
                             }
-                        } else if (code > 0){
-                            // 直接转发Event
-                            terminal.getChannel().writeAndFlush(terminal.getProtocolWrapper().wrap(event));
                         }
                     }
+                } catch (Exception e) {
+                    log.error("[Inner Event Process] error", e);
                 }
             });
         }
