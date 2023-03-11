@@ -57,6 +57,12 @@ spec:
             - name: clusters
               containerPort: 9930
               protocol: UDP
+            - name: web
+              containerPort: 9000
+              protocol: TCP
+            - name: ws
+              containerPort: 8000
+              protocol: TCP
       volumes:
         - name: netting-im-log
           persistentVolumeClaim:

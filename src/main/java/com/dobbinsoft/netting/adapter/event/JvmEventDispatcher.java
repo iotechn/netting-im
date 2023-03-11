@@ -48,7 +48,7 @@ public class JvmEventDispatcher extends EventDispatcher {
             return true;
         } else {
             // 1. 路由到其他节点
-            ClusterNode clusterNode = clusterNodeMapper.get(terminal.getBusinessUserId());
+            ClusterNode clusterNode = clusterNodeMapper.get(businessUserId);
             if (clusterNode != null) {
                 return clusterNode.dispatchToTerminal(ioEvent, businessUserId);
             }
