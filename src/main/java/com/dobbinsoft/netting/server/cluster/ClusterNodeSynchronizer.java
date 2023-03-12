@@ -108,7 +108,7 @@ public class ClusterNodeSynchronizer {
             try {
                 String[] headAndBody = StringUtils.getHeadAndBody(data);
                 Class<?> clazz = Class.forName(headAndBody[0]);
-                Object obj = JsonUtils.parse(data, clazz);
+                Object obj = JsonUtils.parse(headAndBody[1], clazz);
                 if (obj instanceof ClusterNode) {
                     clusterNodeMapper.heartBeatCluster((ClusterNode) obj);
                 } else if (obj instanceof ClusterNodeEvent) {
