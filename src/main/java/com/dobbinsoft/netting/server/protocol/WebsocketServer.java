@@ -5,6 +5,7 @@ import com.dobbinsoft.netting.base.utils.JsonUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
 import com.dobbinsoft.netting.server.cluster.ClusterNodeSynchronizer;
+import com.dobbinsoft.netting.server.cluster.objects.ClusterNodeEvent;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
 import com.dobbinsoft.netting.server.event.IOEvent;
@@ -121,7 +122,10 @@ public class WebsocketServer {
             Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
             if (clusterServer) {
                 Terminal terminal = terminalRepository.findById(terminalId);
-                eventDispatcher.dispatchToServer(disconnectInnerEvent, terminal);
+                ClusterNodeEvent clusterNodeEvent = new ClusterNodeEvent();
+                clusterNodeEvent.setClusterNode(ClusterNodeSynchronizer.clusterNode);
+                clusterNodeEvent.setBusinessUserId(terminal.getBusinessUserId());
+                clusterNodeSynchronizer.sendEvent(clusterNodeEvent);
             }
             terminalRepository.remove(terminalId);
             log.info("[Terminal Ws] Disconnected id=" + terminalId);
@@ -130,13 +134,18 @@ public class WebsocketServer {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             log.error("[Terminal Ws] Exception", cause);
-            terminalRepository.remove(ctx.channel().id().asLongText());
-            ctx.channel().close();
-
+            String terminalId = ctx.channel().id().asLongText();
             Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
             if (clusterServer) {
-
+                Terminal terminal = terminalRepository.findById(terminalId);
+                ClusterNodeEvent clusterNodeEvent = new ClusterNodeEvent();
+                clusterNodeEvent.setClusterNode(ClusterNodeSynchronizer.clusterNode);
+                clusterNodeEvent.setBusinessUserId(terminal.getBusinessUserId());
+                clusterNodeSynchronizer.sendEvent(clusterNodeEvent);
             }
+            terminalRepository.remove(terminalId);
+            ctx.channel().close();
+
         }
     }
 
