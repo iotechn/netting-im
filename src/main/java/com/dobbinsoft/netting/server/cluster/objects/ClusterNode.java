@@ -43,11 +43,26 @@ public class ClusterNode {
 
     private Channel channel;
 
+    static EventLoopGroup group;
+
     public boolean dispatchToTerminal(String ioEvent, String businessUserId) {
+        ClusterDispatcherInnerEvent innerEvent = new ClusterDispatcherInnerEvent();
+        innerEvent.setIoEvent(ioEvent);
+        innerEvent.setBusinessUserId(businessUserId);
+        channel.writeAndFlush(new TextWebSocketFrame(JsonUtils.toJson(innerEvent)));
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return hostName + "-" + hostAddress + "-" + wsServerPort;
+    }
+
+    public void init() {
         if (channel == null) {
             synchronized (this) {
                 if (channel == null) {
-                    EventLoopGroup group = new NioEventLoopGroup(1);
+                    group = new NioEventLoopGroup(1);
                     try {
                         URI uri = new URI("ws://" + hostAddress + ":" + wsServerPort + "/ws/terminal");
                         WebSocketClientHandler handler = new WebSocketClientHandler(WebSocketClientHandshakerFactory
@@ -68,23 +83,12 @@ public class ClusterNode {
                         this.channel = ch;
                     } catch (Exception e) {
                         log.error("[ClusterNode] WS Client 异常", e);
-                        return false;
                     } finally {
-                        group.shutdownGracefully();
+//                        group.shutdownGracefully();
                     }
                 }
             }
         }
-        ClusterDispatcherInnerEvent innerEvent = new ClusterDispatcherInnerEvent();
-        innerEvent.setIoEvent(ioEvent);
-        innerEvent.setBusinessUserId(businessUserId);
-        channel.writeAndFlush(new TextWebSocketFrame(JsonUtils.toJson(innerEvent)));
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return hostName + "-" + hostAddress + "-" + wsServerPort;
     }
 
     public static class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
@@ -147,6 +151,9 @@ public class ClusterNode {
                 log.info("WebSocket Client received pong");
             } else if (frame instanceof CloseWebSocketFrame) {
                 log.info("WebSocket Client received closing");
+                if (group != null) {
+                    group.shutdownGracefully();
+                }
                 ch.close();
             }
         }
@@ -156,6 +163,9 @@ public class ClusterNode {
             log.error("[ClusterNode] As Client 异常", cause);
             if (!handshakeFuture.isDone()) {
                 handshakeFuture.setFailure(cause);
+            }
+            if (group != null) {
+                group.shutdownGracefully();
             }
             ctx.close();
         }

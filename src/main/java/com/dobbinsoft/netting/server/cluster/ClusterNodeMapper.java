@@ -83,6 +83,7 @@ public class ClusterNodeMapper {
         ClusterNode clusterNodeFromCache = clusterNodes.get(clusterNode);
         if (clusterNodeFromCache == null) {
             // New Node Join
+            clusterNode.init();
             clusterNodes.put(clusterNode, clusterNode);
         } else {
             clusterNode = clusterNodeFromCache;
