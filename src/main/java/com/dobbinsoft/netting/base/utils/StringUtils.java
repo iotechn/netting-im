@@ -13,7 +13,7 @@ public class StringUtils {
         return !isEmpty(string);
     }
 
-    public static String[] getEventCodeAndBody(String eventRaw) {
+    public static String[] getHeadAndBody(String eventRaw) {
         int index = eventRaw.indexOf("|");
         if (index < 0) {
             log.error("[Event Parse] string format incorrect!");

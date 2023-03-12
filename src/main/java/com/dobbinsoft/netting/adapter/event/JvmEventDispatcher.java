@@ -1,7 +1,7 @@
 package com.dobbinsoft.netting.adapter.event;
 
 import com.dobbinsoft.netting.im.application.event.AbstractEventHandler;
-import com.dobbinsoft.netting.server.cluster.ClusterNode;
+import com.dobbinsoft.netting.server.cluster.objects.ClusterNode;
 import com.dobbinsoft.netting.server.cluster.ClusterNodeMapper;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;

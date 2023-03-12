@@ -2,6 +2,7 @@ package com.dobbinsoft.netting.server.cluster;
 
 import com.dobbinsoft.netting.base.ext.ReadWriteHashMap;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
+import com.dobbinsoft.netting.server.cluster.objects.ClusterNode;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,6 +66,15 @@ public class ClusterNodeMapper {
         businessUserIdClusterNodeMap.put(businessUserId, clusterNode);
     }
 
+    public void remove(String businessUserId, ClusterNode clusterNode) {
+        ClusterNode clusterNodeExist = get(businessUserId);
+        if (clusterNodeExist != null) {
+            if (clusterNodeExist.equals(clusterNode)) {
+                businessUserIdClusterNodeMap.remove(businessUserId);
+            }
+        }
+    }
+
     public ClusterNode get(String businessUserId) {
         return businessUserIdClusterNodeMap.get(businessUserId);
     }
@@ -72,6 +82,7 @@ public class ClusterNodeMapper {
     private ClusterNode putClusterNodeIfNotAbsent(ClusterNode clusterNode) {
         ClusterNode clusterNodeFromCache = clusterNodes.get(clusterNode);
         if (clusterNodeFromCache == null) {
+            // New Node Join
             clusterNodes.put(clusterNode, clusterNode);
         } else {
             clusterNode = clusterNodeFromCache;

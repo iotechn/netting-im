@@ -4,6 +4,7 @@ import com.dobbinsoft.netting.adapter.event.JvmEventDispatcher;
 import com.dobbinsoft.netting.base.utils.JsonUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
+import com.dobbinsoft.netting.server.cluster.ClusterNodeSynchronizer;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
 import com.dobbinsoft.netting.server.event.IOEvent;
@@ -31,6 +32,8 @@ public class WebsocketServer {
 
     @Inject
     private NettyWebSocketBinaryServerHandler nettyWebSocketBinaryServerHandler;
+
+
 
     public void doServer() {
         //开启第一个线程用于接收客户端连接
@@ -79,11 +82,14 @@ public class WebsocketServer {
         @Inject
         private TerminalRepository terminalRepository;
 
+        @Inject
+        private ClusterNodeSynchronizer clusterNodeSynchronizer;
+
         // 读取客户端发送的请求报文
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
             String text = msg.text();
-            String[] textArray = StringUtils.getEventCodeAndBody(text);
+            String[] textArray = StringUtils.getHeadAndBody(text);
             int code = Integer.parseInt(textArray[0]);
             Class<? extends IOEvent> eventClass = eventDispatcher.getEventClass(code);
             if (eventClass != null) {
@@ -111,6 +117,12 @@ public class WebsocketServer {
         public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
             // ctx.channel().id() 表示唯一的值
             String terminalId = ctx.channel().id().asLongText();
+
+            Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
+            if (clusterServer) {
+                Terminal terminal = terminalRepository.findById(terminalId);
+                eventDispatcher.dispatchToServer(disconnectInnerEvent, terminal);
+            }
             terminalRepository.remove(terminalId);
             log.info("[Terminal Ws] Disconnected id=" + terminalId);
         }
@@ -120,6 +132,11 @@ public class WebsocketServer {
             log.error("[Terminal Ws] Exception", cause);
             terminalRepository.remove(ctx.channel().id().asLongText());
             ctx.channel().close();
+
+            Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
+            if (clusterServer) {
+
+            }
         }
     }
 

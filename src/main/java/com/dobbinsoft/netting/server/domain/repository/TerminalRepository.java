@@ -1,11 +1,11 @@
 package com.dobbinsoft.netting.server.domain.repository;
 
 import com.dobbinsoft.netting.base.utils.StringUtils;
-import com.dobbinsoft.netting.server.cluster.ClusterNode;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.google.inject.Singleton;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
@@ -50,6 +50,10 @@ public class TerminalRepository {
         if (StringUtils.isNotEmpty(terminal.getBusinessUserId())) {
             businessUserIdMap.remove(terminal.getBusinessUserId());
         }
+    }
+
+    public Set<String> businessUserIds() {
+        return businessUserIdMap.keySet();
     }
 
 }

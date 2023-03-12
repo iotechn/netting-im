@@ -3,6 +3,8 @@ package com.dobbinsoft.netting.server.event.inner.handler;
 import com.dobbinsoft.netting.base.utils.JwtUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
+import com.dobbinsoft.netting.server.cluster.ClusterNodeSynchronizer;
+import com.dobbinsoft.netting.server.cluster.objects.ClusterNodeEvent;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
 import com.dobbinsoft.netting.server.event.inner.AuthorizedInnerEvent;
@@ -22,6 +24,9 @@ public class AuthorizedInnerEventHandler extends AbstractInnerEventHandler<Autho
     @Inject
     private TerminalRepository terminalRepository;
 
+    @Inject
+    private ClusterNodeSynchronizer clusterNodeSynchronizer;
+
     @Override
     public void handle(AuthorizedInnerEvent innerEvent, Channel channel) {
         Terminal terminal = terminalRepository.findById(channel.id().asLongText());
@@ -40,6 +45,11 @@ public class AuthorizedInnerEventHandler extends AbstractInnerEventHandler<Autho
                     terminal.setPermissionKeys(Arrays.asList());
                 }
                 terminalRepository.save(terminal);
+                ClusterNodeEvent clusterNodeEvent = new ClusterNodeEvent();
+                clusterNodeEvent.setEvent(ClusterNodeEvent.TERMINAL_AUTHORIZED);
+                clusterNodeEvent.setBusinessUserId(terminal.getBusinessUserId());
+                clusterNodeEvent.setClusterNode(ClusterNodeSynchronizer.clusterNode);
+                clusterNodeSynchronizer.sendEvent(clusterNodeEvent);
             } else {
                 log.warn("[Authorized Event] verifyRSA256 token failed, token: {}", terminal.getJwtToken());
             }

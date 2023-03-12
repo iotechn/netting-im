@@ -50,7 +50,7 @@ public abstract class EventDispatcher {
                     List<String> events = (List<String>) f.getNow();
                     if (CollectionUtils.isNotEmpty(events)) {
                         for (String event : events) {
-                            String[] eventCodeAndBody = StringUtils.getEventCodeAndBody(event);
+                            String[] eventCodeAndBody = StringUtils.getHeadAndBody(event);
                             int code = Integer.parseInt(eventCodeAndBody[0]);
                             if (code < 0) {
                                 // 内置事件 通过InnerEvent 的 eventCode 找到对应的处理器

@@ -1,4 +1,4 @@
-package com.dobbinsoft.netting.server.cluster;
+package com.dobbinsoft.netting.server.cluster.objects;
 
 import com.dobbinsoft.netting.base.utils.JsonUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;

@@ -12,12 +12,14 @@ public interface IOEvent {
 
     int INNER_EVENT_AUTHORIZED = -1;
 
-    int INNER_EVENT_GROUP_STREAM_JOIN = -2;
+    int INNER_EVENT_DISCONNECTED = -2;
+
+    int INNER_EVENT_GROUP_STREAM_JOIN = -3;
 
     /**
      * 集群内转发
      */
-    int INNER_EVENT_CLUSTER_DISPATCHER = -3;
+    int INNER_EVENT_CLUSTER_DISPATCHER = -4;
 
     /**
      * 该事件所需的访问权限KEY
