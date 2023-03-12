@@ -117,30 +117,24 @@ public class WebsocketServer {
         @Override
         public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
             // ctx.channel().id() 表示唯一的值
-            String terminalId = ctx.channel().id().asLongText();
-            Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
-            if (clusterServer) {
-                Terminal terminal = terminalRepository.findById(terminalId);
-                if (terminal != null) {
-                    ClusterNodeEvent clusterNodeEvent = new ClusterNodeEvent();
-                    clusterNodeEvent.setEvent(ClusterNodeEvent.TERMINAL_DISCONNECTED);
-                    clusterNodeEvent.setClusterNode(ClusterNodeSynchronizer.clusterNode);
-                    clusterNodeEvent.setBusinessUserId(terminal.getBusinessUserId());
-                    clusterNodeSynchronizer.sendEvent(clusterNodeEvent);
-                }
-            }
-            terminalRepository.remove(terminalId);
-            log.info("[Terminal Ws] Disconnected id=" + terminalId);
+            terminalCloseConnection(ctx);
+            log.info("[Terminal Ws] Disconnected");
         }
         // 处理异常
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             log.error("[Terminal Ws] Exception", cause);
+            terminalCloseConnection(ctx);
+            ctx.channel().close();
+
+        }
+
+        private void terminalCloseConnection(ChannelHandlerContext ctx) {
             String terminalId = ctx.channel().id().asLongText();
             Boolean clusterServer = PropertyUtils.getPropertyBoolean("server.cluster");
             if (clusterServer) {
                 Terminal terminal = terminalRepository.findById(terminalId);
-                if (terminal != null) {
+                if (terminal != null && terminal.getBusinessUserId() != null) {
                     ClusterNodeEvent clusterNodeEvent = new ClusterNodeEvent();
                     clusterNodeEvent.setEvent(ClusterNodeEvent.TERMINAL_DISCONNECTED);
                     clusterNodeEvent.setClusterNode(ClusterNodeSynchronizer.clusterNode);
@@ -149,8 +143,6 @@ public class WebsocketServer {
                 }
             }
             terminalRepository.remove(terminalId);
-            ctx.channel().close();
-
         }
     }
 
