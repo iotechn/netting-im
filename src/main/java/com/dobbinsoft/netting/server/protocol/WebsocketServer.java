@@ -91,7 +91,13 @@ public class WebsocketServer {
         protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
             String text = msg.text();
             String[] textArray = StringUtils.getHeadAndBody(text);
-            int code = Integer.parseInt(textArray[0]);
+            int code = 0;
+            try {
+                code = Integer.parseInt(textArray[0]);
+            } catch (NumberFormatException e) {
+                log.error("[WebSocketServer] Text:{}", text);
+                throw e;
+            }
             Class<? extends IOEvent> eventClass = eventDispatcher.getEventClass(code);
             if (eventClass != null) {
                 IOEvent ioEvent = JsonUtils.parse(textArray[1], eventClass);

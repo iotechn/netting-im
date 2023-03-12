@@ -49,7 +49,7 @@ public class ClusterNode {
         ClusterDispatcherInnerEvent innerEvent = new ClusterDispatcherInnerEvent();
         innerEvent.setIoEvent(ioEvent);
         innerEvent.setBusinessUserId(businessUserId);
-        channel.writeAndFlush(new TextWebSocketFrame(JsonUtils.toJson(innerEvent)));
+        channel.writeAndFlush(new TextWebSocketFrame(innerEvent.toMessage()));
         return true;
     }
 
