@@ -153,7 +153,7 @@ public class ClusterNode {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            cause.printStackTrace();
+            log.error("[ClusterNode] As Client 异常", cause);
             if (!handshakeFuture.isDone()) {
                 handshakeFuture.setFailure(cause);
             }
