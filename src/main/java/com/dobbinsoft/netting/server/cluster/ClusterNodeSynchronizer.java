@@ -84,7 +84,7 @@ public class ClusterNodeSynchronizer {
                 Thread.sleep(period);
             }
         } catch (Exception e) {
-            log.error("[ClusterClient] 异常", e);
+            log.error("[ClusterNode] 异常", e);
         } finally {
             group.shutdownGracefully();
         }
@@ -114,16 +114,20 @@ public class ClusterNodeSynchronizer {
                 } else if (obj instanceof ClusterNodeEvent) {
                     // 将自身所有的Terminal同步给局域网
                     ClusterNodeEvent clusterNodeEvent = (ClusterNodeEvent) obj;
-                    if (clusterNodeEvent.getEvent() == ClusterNodeEvent.EVENT_STARTUP) {
-                        Set<String> userIds = terminalRepository.businessUserIds();
-                        ClusterNodeFullTerminals clusterNodeFullTerminals = new ClusterNodeFullTerminals();
-                        clusterNodeFullTerminals.setClusterNode(ClusterNodeSynchronizer.clusterNode);
-                        clusterNodeFullTerminals.setTerminalBusinessUserIds(userIds);
-                        ClusterNodeSynchronizer.multicast(getMulticastBody(clusterNodeFullTerminals));
-                    } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_AUTHORIZED) {
-                        clusterNodeMapper.put(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
-                    } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_DISCONNECTED) {
-                        clusterNodeMapper.remove(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
+                    if (clusterNodeEvent.getEvent() != null) {
+                        if (clusterNodeEvent.getEvent() == ClusterNodeEvent.EVENT_STARTUP) {
+                            Set<String> userIds = terminalRepository.businessUserIds();
+                            ClusterNodeFullTerminals clusterNodeFullTerminals = new ClusterNodeFullTerminals();
+                            clusterNodeFullTerminals.setClusterNode(ClusterNodeSynchronizer.clusterNode);
+                            clusterNodeFullTerminals.setTerminalBusinessUserIds(userIds);
+                            ClusterNodeSynchronizer.multicast(getMulticastBody(clusterNodeFullTerminals));
+                        } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_AUTHORIZED) {
+                            clusterNodeMapper.put(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
+                        } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_DISCONNECTED) {
+                            clusterNodeMapper.remove(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
+                        }
+                    } else {
+                        log.error("[ClusterNode] EventCodeEmpty, text={}", data);
                     }
                 } else if (obj instanceof ClusterNodeFullTerminals) {
                     ClusterNodeFullTerminals clusterNodeFullTerminals = (ClusterNodeFullTerminals) obj;
