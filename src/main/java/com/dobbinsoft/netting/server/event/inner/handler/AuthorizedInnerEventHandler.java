@@ -1,5 +1,6 @@
 package com.dobbinsoft.netting.server.event.inner.handler;
 
+import com.dobbinsoft.netting.base.utils.JsonUtils;
 import com.dobbinsoft.netting.base.utils.JwtUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
@@ -28,8 +29,7 @@ public class AuthorizedInnerEventHandler extends AbstractInnerEventHandler<Autho
     private ClusterNodeSynchronizer clusterNodeSynchronizer;
 
     @Override
-    public void handle(AuthorizedInnerEvent innerEvent, Channel channel) {
-        Terminal terminal = terminalRepository.findById(channel.id().asLongText());
+    public void handle(AuthorizedInnerEvent innerEvent, Terminal terminal) {
         if (terminal != null) {
             terminal.setJwtToken(innerEvent.getJwtToken());
             String publicKey = PropertyUtils.getProperty("server.ws.auth.public-key");
@@ -53,6 +53,8 @@ public class AuthorizedInnerEventHandler extends AbstractInnerEventHandler<Autho
             } else {
                 log.warn("[Authorized Event] verifyRSA256 token failed, token: {}", terminal.getJwtToken());
             }
+        } else {
+            log.error("[Authorized Event] terminal is null, event={}", JsonUtils.toJson(innerEvent));
         }
     }
 

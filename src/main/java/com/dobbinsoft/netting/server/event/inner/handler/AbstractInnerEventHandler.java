@@ -1,5 +1,6 @@
 package com.dobbinsoft.netting.server.event.inner.handler;
 
+import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public abstract class AbstractInnerEventHandler<T extends IOEvent> {
         return innerEventHandlerMap.get(code);
     }
 
-    public abstract void handle(T t, Channel channel);
+    public abstract void handle(T t, Terminal terminal);
 
     public abstract Class<T> eventClass();
 

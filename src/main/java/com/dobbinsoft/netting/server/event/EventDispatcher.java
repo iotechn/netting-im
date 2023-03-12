@@ -57,7 +57,7 @@ public abstract class EventDispatcher {
                                 AbstractInnerEventHandler handler = AuthorizedInnerEventHandler.getHandler(code);
                                 if (handler != null) {
                                     IOEvent ioEvent = (IOEvent) JsonUtils.parse(eventCodeAndBody[1], handler.eventClass());
-                                    handler.handle(ioEvent, terminal == null ? null : terminal.getChannel());
+                                    handler.handle(ioEvent, terminal);
                                 } else {
                                     log.warn("[Inner Event Process] event code not support: {}", code);
                                 }

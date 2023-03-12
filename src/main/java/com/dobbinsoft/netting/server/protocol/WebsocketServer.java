@@ -9,6 +9,8 @@ import com.dobbinsoft.netting.server.cluster.objects.ClusterNodeEvent;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.domain.repository.TerminalRepository;
 import com.dobbinsoft.netting.server.event.IOEvent;
+import com.dobbinsoft.netting.server.event.inner.handler.AbstractInnerEventHandler;
+import com.dobbinsoft.netting.server.event.inner.handler.AuthorizedInnerEventHandler;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.netty.bootstrap.ServerBootstrap;
@@ -98,13 +100,19 @@ public class WebsocketServer {
                 log.error("[WebSocketServer] Text:{}", text);
                 throw e;
             }
-            Class<? extends IOEvent> eventClass = eventDispatcher.getEventClass(code);
-            if (eventClass != null) {
-                IOEvent ioEvent = JsonUtils.parse(textArray[1], eventClass);
-                Terminal terminal = terminalRepository.findById(ctx.channel().id().asLongText());
-                eventDispatcher.dispatchToServer(ioEvent, terminal);
+            if (code > 0) {
+                Class<? extends IOEvent> eventClass = eventDispatcher.getEventClass(code);
+                if (eventClass != null) {
+                    IOEvent ioEvent = JsonUtils.parse(textArray[1], eventClass);
+                    Terminal terminal = terminalRepository.findById(ctx.channel().id().asLongText());
+                    eventDispatcher.dispatchToServer(ioEvent, terminal);
+                } else {
+                    log.info("[Terminal WS] Invalid event code: {}", code);
+                }
             } else {
-                log.info("[Terminal WS] Invalid event code: {}", code);
+                AbstractInnerEventHandler handler = AuthorizedInnerEventHandler.getHandler(code);
+                IOEvent ioEvent = (IOEvent) JsonUtils.parse(textArray[1], handler.eventClass());
+                handler.handle(ioEvent, null);
             }
         }
         // 当web客户端连接后，触发该方法
