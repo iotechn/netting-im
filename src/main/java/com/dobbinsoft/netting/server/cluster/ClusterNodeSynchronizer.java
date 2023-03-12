@@ -104,30 +104,36 @@ public class ClusterNodeSynchronizer {
         protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
             // TODO UDP 最大长度的分包问题
             String data = datagramPacket.content().toString(StandardCharsets.UTF_8);
-            String[] headAndBody = StringUtils.getHeadAndBody(data);
-            Class<?> clazz = Class.forName(headAndBody[0]);
-            Object obj = JsonUtils.parse(data, clazz);
-            if (obj instanceof ClusterNode) {
-                clusterNodeMapper.heartBeatCluster((ClusterNode) obj);
-            } else if (obj instanceof ClusterNodeEvent) {
-                // 将自身所有的Terminal同步给局域网
-                ClusterNodeEvent clusterNodeEvent = (ClusterNodeEvent) obj;
-                if (clusterNodeEvent.getEvent() == ClusterNodeEvent.EVENT_STARTUP) {
-                    Set<String> userIds = terminalRepository.businessUserIds();
-                    ClusterNodeFullTerminals clusterNodeFullTerminals = new ClusterNodeFullTerminals();
-                    clusterNodeFullTerminals.setClusterNode(ClusterNodeSynchronizer.clusterNode);
-                    clusterNodeFullTerminals.setTerminalBusinessUserIds(userIds);
-                    ClusterNodeSynchronizer.multicast(getMulticastBody(clusterNodeFullTerminals));
-                } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_AUTHORIZED) {
-                    clusterNodeMapper.put(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
-                } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_DISCONNECTED) {
-                    clusterNodeMapper.remove(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
+
+            try {
+                String[] headAndBody = StringUtils.getHeadAndBody(data);
+                Class<?> clazz = Class.forName(headAndBody[0]);
+                Object obj = JsonUtils.parse(data, clazz);
+                if (obj instanceof ClusterNode) {
+                    clusterNodeMapper.heartBeatCluster((ClusterNode) obj);
+                } else if (obj instanceof ClusterNodeEvent) {
+                    // 将自身所有的Terminal同步给局域网
+                    ClusterNodeEvent clusterNodeEvent = (ClusterNodeEvent) obj;
+                    if (clusterNodeEvent.getEvent() == ClusterNodeEvent.EVENT_STARTUP) {
+                        Set<String> userIds = terminalRepository.businessUserIds();
+                        ClusterNodeFullTerminals clusterNodeFullTerminals = new ClusterNodeFullTerminals();
+                        clusterNodeFullTerminals.setClusterNode(ClusterNodeSynchronizer.clusterNode);
+                        clusterNodeFullTerminals.setTerminalBusinessUserIds(userIds);
+                        ClusterNodeSynchronizer.multicast(getMulticastBody(clusterNodeFullTerminals));
+                    } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_AUTHORIZED) {
+                        clusterNodeMapper.put(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
+                    } else if (clusterNodeEvent.getEvent() == ClusterNodeEvent.TERMINAL_DISCONNECTED) {
+                        clusterNodeMapper.remove(clusterNodeEvent.getBusinessUserId(), clusterNodeEvent.getClusterNode());
+                    }
+                } else if (obj instanceof ClusterNodeFullTerminals) {
+                    ClusterNodeFullTerminals clusterNodeFullTerminals = (ClusterNodeFullTerminals) obj;
+                    for (String terminalBusinessUserId : clusterNodeFullTerminals.getTerminalBusinessUserIds()) {
+                        clusterNodeMapper.put(terminalBusinessUserId, clusterNodeFullTerminals.getClusterNode());
+                    }
                 }
-            } else if (obj instanceof ClusterNodeFullTerminals) {
-                ClusterNodeFullTerminals clusterNodeFullTerminals = (ClusterNodeFullTerminals) obj;
-                for (String terminalBusinessUserId : clusterNodeFullTerminals.getTerminalBusinessUserIds()) {
-                    clusterNodeMapper.put(terminalBusinessUserId, clusterNodeFullTerminals.getClusterNode());
-                }
+            } catch (Exception e) {
+                log.error("[ClusterNode] UDP Error data:{}", data, e);
+                throw new RuntimeException(e);
             }
         }
     }
