@@ -10,6 +10,7 @@ import com.dobbinsoft.netting.im.application.event.event.AuthorizeEvent;
 import com.dobbinsoft.netting.im.application.event.event.AuthorizeResultEvent;
 import com.dobbinsoft.netting.im.domain.entity.User;
 import com.dobbinsoft.netting.im.domain.repository.UserRepository;
+import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.event.inner.AuthorizedInnerEvent;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -29,7 +30,7 @@ public class AuthorizeEventHandler extends AbstractEventHandler<AuthorizeEvent> 
     private UserRepository userRepository;
 
     @Override
-    public Future<List<String>> handle(AuthorizeEvent authorizeEvent, String jwtToken) {
+    public Future<List<String>> handle(AuthorizeEvent authorizeEvent, Terminal terminal) {
         Future<List<String>> submit = defaultEventLoopGroup.submit(new CaughtCallable<List<String>>() {
             @Override
             public List<String> caughtCall() {

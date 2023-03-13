@@ -1,5 +1,6 @@
 package com.dobbinsoft.netting.im.application.event;
 
+import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.dobbinsoft.netting.server.event.IOEvent;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.Future;
@@ -26,6 +27,6 @@ public abstract class AbstractEventHandler<T extends IOEvent> {
      * @param jwtToken
      * @return
      */
-    public abstract Future<List<String>> handle(T t, String jwtToken);
+    public abstract Future<List<String>> handle(T t, Terminal jwtToken);
 
 }

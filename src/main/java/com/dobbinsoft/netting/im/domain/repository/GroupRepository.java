@@ -36,15 +36,16 @@ public class GroupRepository {
     private GroupUserMapper groupUserMapper;
 
     public Group findById(Long groupId) {
-        GroupPO groupPO = groupMapper.findById(groupId);
-        List<GroupUserPO> groupUsers = groupUserMapper.findByGroupId(groupId);
-        Map<Long, GroupUserPO> groupUserMap = groupUsers.stream().collect(Collectors.toMap(GroupUserPO::getUserId, Function.identity()));
-        List<UserPO> userPos = userMapper.findByIds(groupUserMap.keySet());
-        if (SessionUtils.hasLogin()) {
-            return Group.from(groupPO, groupUserMap.get(SessionUtils.getUser().getBusinessUserId()), userPos);
-        } else {
-            return Group.from(groupPO, null, userPos);
-        }
+//        GroupPO groupPO = groupMapper.findById(groupId);
+//        List<GroupUserPO> groupUsers = groupUserMapper.findByGroupId(groupId);
+//        Map<Long, GroupUserPO> groupUserMap = groupUsers.stream().collect(Collectors.toMap(GroupUserPO::getUserId, Function.identity()));
+//        List<UserPO> userPos = userMapper.findByIds(groupUserMap.keySet());
+//        if (SessionUtils.hasLogin()) {
+//            return Group.from(groupPO, groupUserMap.get(SessionUtils.getUser().getBusinessUserId()), userPos);
+//        } else {
+//        }
+//        return Group.from(groupPO, null, userPos);
+        return null;
     }
 
 }

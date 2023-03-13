@@ -12,8 +12,15 @@ public class ClusterDispatcherInnerEvent implements IOEvent {
 
     private String ioEvent;
 
+    private String sign;
+
     @Override
     public int eventCode() {
         return IOEvent.INNER_EVENT_CLUSTER_DISPATCHER;
+    }
+
+    @Override
+    public boolean ignoreAuthorize() {
+        return true;
     }
 }

@@ -1,6 +1,6 @@
 package com.dobbinsoft.netting.server.cluster.objects;
 
-import com.dobbinsoft.netting.base.utils.JsonUtils;
+import com.dobbinsoft.netting.base.utils.JwtUtils;
 import com.dobbinsoft.netting.base.utils.PropertyUtils;
 import com.dobbinsoft.netting.server.event.inner.ClusterDispatcherInnerEvent;
 import io.netty.bootstrap.Bootstrap;
@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
+import java.util.HashMap;
 
 @Getter
 @Setter
@@ -49,6 +50,9 @@ public class ClusterNode {
         ClusterDispatcherInnerEvent innerEvent = new ClusterDispatcherInnerEvent();
         innerEvent.setIoEvent(ioEvent);
         innerEvent.setBusinessUserId(businessUserId);
+        HashMap<String, String> body = new HashMap<>();
+        body.put("businessUserId", businessUserId);
+        innerEvent.setSign(JwtUtils.createHMAC256(new HashMap<>(), body, 15, PropertyUtils.getProperty("server.cluster.sign-key")));
         channel.writeAndFlush(new TextWebSocketFrame(innerEvent.toMessage()));
         return true;
     }

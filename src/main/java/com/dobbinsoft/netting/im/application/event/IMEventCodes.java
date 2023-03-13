@@ -5,6 +5,8 @@ public class IMEventCodes {
     public static final int AUTHORIZE = 1001;
     public static final int AUTHORIZE_RESULT = 1002;
 
+    public static final int CREATE_GROUP = 1003;
+
 
 
 

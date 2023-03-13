@@ -30,6 +30,10 @@ public interface IOEvent {
         return null;
     }
 
+    default boolean ignoreAuthorize() {
+        return false;
+    }
+
     default String toMessage() {
         String json = JsonUtils.toJson(this);
         return this.eventCode() + "|" + json;

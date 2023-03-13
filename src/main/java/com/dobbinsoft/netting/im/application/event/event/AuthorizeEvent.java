@@ -17,4 +17,9 @@ public class AuthorizeEvent implements IOEvent {
     public int eventCode() {
         return IMEventCodes.AUTHORIZE;
     }
+
+    @Override
+    public boolean ignoreAuthorize() {
+        return true;
+    }
 }

@@ -1,9 +1,11 @@
 package com.dobbinsoft.netting.server.domain.repository;
 
+import com.dobbinsoft.netting.base.utils.CollectionUtils;
 import com.dobbinsoft.netting.base.utils.StringUtils;
 import com.dobbinsoft.netting.server.domain.entity.Terminal;
 import com.google.inject.Singleton;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +33,12 @@ public class TerminalRepository {
 
     public void save(Terminal terminal) {
         String id = terminal.getId();
+        if (terminal.getAuthorized() == null) {
+            terminal.setAuthorized(false);
+        }
+        if (CollectionUtils.isEmpty(terminal.getPermissionKeys())) {
+            terminal.setPermissionKeys(Collections.EMPTY_LIST);
+        }
         terminalMap.put(id, terminal);
         if (StringUtils.isNotEmpty(terminal.getBusinessUserId())) {
             Terminal terminalExist = businessUserIdMap.get(terminal.getBusinessUserId());

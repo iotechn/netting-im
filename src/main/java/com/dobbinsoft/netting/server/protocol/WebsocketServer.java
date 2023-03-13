@@ -105,7 +105,11 @@ public class WebsocketServer {
                 if (eventClass != null) {
                     IOEvent ioEvent = JsonUtils.parse(textArray[1], eventClass);
                     Terminal terminal = terminalRepository.findById(ctx.channel().id().asLongText());
-                    eventDispatcher.dispatchToServer(ioEvent, terminal);
+                    if (ioEvent.ignoreAuthorize() || terminal.getAuthorized()) {
+                        eventDispatcher.dispatchToServer(ioEvent, terminal);
+                    } else {
+                        log.warn("[Terminal WS] Unauth event");
+                    }
                 } else {
                     log.info("[Terminal WS] Invalid event code: {}", code);
                 }
@@ -125,7 +129,6 @@ public class WebsocketServer {
             terminal.setProtocolWrapper(websocketProtocolWrapper);
             terminalRepository.save(terminal);
             log.info("[Terminal Ws] Connected id=" + terminal.getId());
-            // TODO 增加鉴权时间限制，第一个包必须是鉴权
         }
         // 客户端离线
         @Override

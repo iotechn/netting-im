@@ -1,5 +1,6 @@
 package com.dobbinsoft.netting.adapter.event;
 
+import com.dobbinsoft.netting.base.utils.StringUtils;
 import com.dobbinsoft.netting.im.application.event.AbstractEventHandler;
 import com.dobbinsoft.netting.server.cluster.objects.ClusterNode;
 import com.dobbinsoft.netting.server.cluster.ClusterNodeMapper;
@@ -10,6 +11,7 @@ import com.dobbinsoft.netting.server.event.IOEvent;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.netty.util.concurrent.Future;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import java.util.List;
  * 消息通过Jvm直接调用的 事件转发器
  */
 @Singleton
+@Slf4j
 public class JvmEventDispatcher extends EventDispatcher {
 
     @Inject
@@ -30,7 +33,14 @@ public class JvmEventDispatcher extends EventDispatcher {
     public void dispatchToServer(IOEvent ioEvent, Terminal terminal) {
         int eventCode = ioEvent.eventCode();
         AbstractEventHandler abstractEventHandler = eventHandlerMap.get(eventCode);
-        Future<List<String>> future = abstractEventHandler.handle(ioEvent, terminal == null ? null : terminal.getJwtToken());
+        String permissionKey = ioEvent.permissionKey();
+        if (StringUtils.isNotEmpty(permissionKey)) {
+            if (!terminal.getPermissionKeys().contains(permissionKey)) {
+                log.info("[EventDispatcher] permission deny!");
+                return;
+            }
+        }
+        Future<List<String>> future = abstractEventHandler.handle(ioEvent, terminal);
         super.processEvent(future, terminal);
     }
 

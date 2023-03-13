@@ -14,10 +14,14 @@ import java.util.List;
  */
 public interface UserMapper {
 
-    public UserPO findById(Long userId);
-
     public UserPO findByBusinessId(String businessUserId);
 
-    public List<UserPO> findByIds(@Param("userIds") Collection<Long> userIds);
+    public List<UserPO> findByBusinessIds(@Param("businessUserIds") Collection<String> businessUserIds);
+
+    public Integer insertBatch(@Param("pos") List<UserPO> pos);
+
+    public Integer updateBatch(@Param("pos")List<UserPO> toUpdateList);
+
+    public Integer deleteBatch(@Param("businessIds")List<String> businessIds);
 
 }

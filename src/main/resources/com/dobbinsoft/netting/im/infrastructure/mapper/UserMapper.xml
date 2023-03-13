@@ -7,17 +7,43 @@
         <result column="user_secret" property="userSecret" jdbcType="VARCHAR"></result>
     </resultMap>
 
-    <select id="findById" resultMap="user">
-        SELECT * FROM `user` WHERE user_id = #{id}
-    </select>
-    
-    <select id="findByIds" resultMap="user">
+    <insert id="insertBatch">
+        INSERT INTO
+            `user` (business_user_id, user_secret)
+        VALUES
+            <foreach collection="pos" item="po" separator=",">
+                (#{po.businessUserId}, #{po.userSecret})
+            </foreach>
+    </insert>
+
+    <update id="updateBatch">
+        UPDATE `user`
+            SET user_secret = CASE business_user_id
+            <foreach collection="pos" item="po" separator=" ">
+                WHEN #{po.businessUserId} THEN #{po.userSecret}
+            </foreach>
+            END
+        WHERE
+            business_user_id in
+            <foreach collection="pos" item="po" separator="," open="(" close=")">
+                #{po.businessUserId}
+            </foreach>
+    </update>
+
+    <delete id="deleteBatch">
+        DELETE FROM `user` WHERE business_user_id in
+        <foreach collection="businessIds" item="businessId" separator="," open="(" close=")">
+            #{businessIds}
+        </foreach>
+    </delete>
+
+    <select id="findByBusinessIds" resultMap="user">
         SELECT
             *
         FROM `user`
-        WHERE user_id IN
-        <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
-            ${userId}
+        WHERE business_user_id IN
+        <foreach collection="businessUserIds" item="userId" open="(" close=")" separator=",">
+            #{userId}
         </foreach>
     </select>
 

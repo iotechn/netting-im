@@ -58,6 +58,8 @@ public class Terminal {
      */
     private StreamGroup currentGroup;
 
+    private Boolean authorized;
+
     /**
      * Terminal 关注一个 Group
      * @param streamGroup
