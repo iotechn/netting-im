@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dobbinsoft.netting.im.infrastructure.mapper.UserFieldMapper">
+
+    <resultMap id="userField" type="com.dobbinsoft.netting.im.infrastructure.po.UserFieldPO">
+        <result column="id" property="id" jdbcType="BIGINT"></result>
+        <result column="business_user_id" property="businessUserId" jdbcType="VARCHAR"></result>
+        <result column="field_name" property="fieldName" jdbcType="VARCHAR"></result>
+        <result column="field_value" property="fieldValue" jdbcType="VARCHAR"></result>
+        <result column="create_time" property="createTime" jdbcType="DATE"></result>
+    </resultMap>
+
+    <select id="findByBusinessUserId" resultMap="userField">
+        SELECT * FROM user_field WHERE business_user_id = #{businessUserId}
+    </select>
+
+
+</mapper>

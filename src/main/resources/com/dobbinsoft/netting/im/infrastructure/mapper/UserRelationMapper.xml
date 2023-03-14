@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dobbinsoft.netting.im.infrastructure.mapper.UserRelationMapper">
+
+    <resultMap id="userRelation" type="com.dobbinsoft.netting.im.infrastructure.po.UserRelationPO">
+        <result column="id" property="id" jdbcType="BIGINT"></result>
+        <result column="business_user_id" property="businessUserId" jdbcType="VARCHAR"></result>
+        <result column="target_business_user_id" property="targetBusinessUserId" jdbcType="VARCHAR"></result>
+        <result column="type" property="type" jdbcType="INTEGER"></result>
+        <result column="create_time" property="createTime" jdbcType="DATE"></result>
+    </resultMap>
+
+    <select id="findRelations" resultMap="userRelation">
+        SELECT * FROM user_relation WHERE business_user_id = #{businessUserId} AND `type` = #{type}
+    </select>
+
+</mapper>

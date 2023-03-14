@@ -34,9 +34,9 @@ public class NettingBootstrap {
     private static final int SERVER_COUNT = 2;
 
     public static void main(String[] args) throws Exception {
+        Injector ioc = IOC.INSTANCE;
         // 1. Init Profile
         initProfile(args);
-        Injector ioc = Guice.createInjector(new GuiceModule());
         CountDownLatch countDownLatch = new CountDownLatch(SERVER_COUNT);
         // 2. Guice IoC 无法进行预加载，部分对象必须进行预加载，所以这里手动列一下，哪些对象是要预加载的
         initIoC(ioc);

@@ -32,7 +32,7 @@ public class GroupCreateEventHandler extends AbstractEventHandler<GroupCreateEve
     public Future<List<String>> handle(GroupCreateEvent groupCreateEvent, Terminal terminal) {
         Group group = new Group();
         group.setName(groupCreateEvent.getName());
-        group.setMembers();
+//        group.setMembers();
         return null;
     }
 }

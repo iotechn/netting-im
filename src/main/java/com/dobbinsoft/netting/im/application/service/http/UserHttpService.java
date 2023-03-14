@@ -24,9 +24,10 @@ public class UserHttpService extends BaseHttpService {
             return Collections.emptyList();
         }
         List<User> entities = users.stream().map(dto -> {
-            User user = new User();
+            User user = userRepository.newInstance();
             user.setBusinessUserId(dto.getBusinessUserId());
             user.setUserSecret(dto.getUserSecret());
+            user.setExtFields(dto.getExtFields());
             return user;
         }).collect(Collectors.toList());
         return userRepository.saveUserBatch(entities);

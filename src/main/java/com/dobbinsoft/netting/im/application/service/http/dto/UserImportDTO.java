@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -18,6 +19,8 @@ public class UserImportDTO {
         private String businessUserId;
 
         private String userSecret;
+
+        private Map<String, String> extFields;
 
     }
 
